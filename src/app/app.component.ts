@@ -46,7 +46,6 @@ export class AppComponent {
   }
 
   onNewField() {
-    console.log("new field")
     if (this.validityCheck()) {
       this.grid = this.addPaddingToGrid(this.grid, 4);
     }
@@ -74,7 +73,6 @@ export class AppComponent {
   }
 
   solve() {
-    console.log(this.grid)
     this.grid = this.addPaddingToGrid(this.grid, 4);
     this.errorMessage = '';
     if (this.validityCheck()) {
