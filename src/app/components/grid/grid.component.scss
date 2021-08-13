@@ -1,0 +1,40 @@
+.grid {
+  display: table;
+  flex-direction: column;
+  max-width: 100%;
+  .row {
+    display: table-row;
+    .highlight {
+      background: #ff00004f;
+    }
+    .field {
+      box-sizing: border-box;
+      position: relative;
+      height: 64px;
+      width: 64px;
+      min-height: 64px;
+      min-width: 64px;
+      border-style: solid;
+      border-width: 1px;
+      display: table-cell;
+      vertical-align: middle;
+      text-align: center;
+      .number {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+      .shape {
+        display: block;
+        margin: auto;
+      }
+    }
+    .empty {
+      background: #e8e7e7;
+    }
+  }
+}
