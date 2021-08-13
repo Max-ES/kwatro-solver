@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { AppComponent, Grid } from './app.component';
+import { AppComponent } from './app.component';
+import { Shape, Color, Grid, BoolGrid, Row, Field } from './models';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -99,6 +100,20 @@ describe('AppComponent', () => {
         [null,null,null,null,null,null,null,null,],
       ];
       expect(component.isValid(grid)).toBeTrue();
+    });
+
+    it('all same should be invalid grid', () => {  
+      const grid: Grid = [
+        [null,null,null,null,null,null,null,null,],
+        [null,null,null,null,null,null,null,null,],
+        [null,null,null,null,null,null,null,null,],
+        [null,null,null,[1,1,1],[1,1,1],[1,1,1],[1,1,1],null,],
+        [null,null,null,null,null,null,null,null,],
+        [null,null,null,null,null,null,null,null,],
+        [null,null,null,null,null,null,null,null,],
+        [null,null,null,null,null,null,null,null,],
+      ];
+      expect(component.isValid(grid)).toBeFalse();
     });
   });
 

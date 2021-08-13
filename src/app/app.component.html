@@ -1,12 +1,22 @@
-<h1>KWATRO - Solver</h1>
+<mat-toolbar color="primary">
+  <span>KWATRO - Solver</span>
+</mat-toolbar>
 
-<app-grid [grid]=grid></app-grid>
-
-<br>
-
-<h2>Hand</h2>
-<app-grid [grid]=[hand]></app-grid>
-
-<h2>Best Grid</h2>
-<span>Score: {{bestScore}}</span>
-<app-grid [grid]=bestGrid [highlight]=bestFields></app-grid>
+<div id="page-wrapper">  
+  <app-grid [grid]=grid [invalid]="!!errorMessage" (newField)="onNewField()" class="grid-wrapper"></app-grid>
+  <br>
+  <button mat-raised-button (click)="clearGrid()">Clear Grid</button>
+  
+  <br>
+  
+  <h2>Hand</h2>
+  <app-grid [grid]=[hand]></app-grid>
+  <br>
+  <button mat-raised-button color="primary" (click)="solve()">Solve</button>
+  <span class="mat-error">{{errorMessage}}</span>
+  <br>
+  
+  <h2>Best Grid</h2>
+  <span>Score: {{bestScore}}</span>
+  <app-grid [grid]=bestGrid [highlight]=bestFields class="grid-wrapper"></app-grid>
+</div>

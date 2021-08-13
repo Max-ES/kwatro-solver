@@ -4,7 +4,6 @@ import { Component } from '@angular/core';
 import { GridComponent } from './components/grid/grid.component';
 import { Shape, Color, Grid, BoolGrid, Row, Field } from './models';
 
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -18,14 +17,16 @@ export class AppComponent {
   grid: Grid = [
     [null,null,null,null,null,null,null,null,],
     [null,null,null,null,null,null,null,null,],
-    [null,null,null,null,null,null,null,null,],
+    [null,null,null,[4,1,1],null,null,null,null,],
+    [null,null,null,[3,1,1],null,null,null,null,],
+    [null,null,null,[2,1,1],null,null,null,null,],
     [null,null,null,[1,1,1],[2,2,2],[3,3,3],[4,4,4],null,],
     [null,null,null,null,[3,2,1],[3,1,2],null,null,],
     [null,null,null,null,null,null,null,null,],
     [null,null,null,null,null,null,null,null,],
     [null,null,null,null,null,null,null,null,],
   ];
-  bestGrid: Grid = []
+  bestGrid: Grid = [];
   bestScore: number = 0;
   bestFields: BoolGrid = [];
 
@@ -36,16 +37,52 @@ export class AppComponent {
     [this.colors.Yellow, this.shapes.Cross, 1],
   ];
 
+  errorMessage = '';
+
   color = 'green';
 
   ngOnInit() {
-    console.log(this.isValid(this.grid));
+    this.grid = this.addPaddingToGrid(this.grid, 2);
+  }
+
+  onNewField() {
+    console.log("new field")
+    if (this.validityCheck()) {
+      this.grid = this.addPaddingToGrid(this.grid, 4);
+    }
+  }
+
+  validityCheck(): boolean {
+    const valid = this.isValid(this.grid);
+    if (!valid) {
+      this.errorMessage = 'Grid is invalid';
+      [this.bestGrid, this.bestFields, this.bestScore] = [[], [], 0];
+    } else {
+      this.errorMessage = '';
+    }
+    return valid;
+  }
+
+  createGrid(height: number, width: number, content: any) {
+    return new Array(height)
+      .fill(null)
+      .map(() => new Array(width).fill(content));
+  }
+
+  clearGrid() {
+    this.grid = this.createGrid(6, 6, null);
+  }
+
+  solve() {
+    console.log(this.grid)
     this.grid = this.addPaddingToGrid(this.grid, 4);
-    [this.bestGrid, this.bestFields, this.bestScore] = this.getBestGrid(this.grid, this.hand)
-    console.log(this.bestGrid);
-    console.log(this.bestFields);
-    const score = this.getScore(this.bestGrid, this.bestFields);
-    console.log(score)
+    this.errorMessage = '';
+    if (this.validityCheck()) {
+      [this.bestGrid, this.bestFields, this.bestScore] = this.getBestGrid(
+        this.copyGrid(this.grid),
+        this.hand
+      );
+    }
   }
 
   isEmpty(field: Field) {
@@ -91,15 +128,22 @@ export class AppComponent {
       currentBatch[1].push(row[i]![1]);
       currentBatch[2].push(row[i]![2]);
       if (currentBatch.length > 4) return false;
-      if (currentBatch.length === 1) continue;
+      if (currentBatch[0].length === 1) continue;
+      let equalCounter = 0;
       for (let j = 0; j < 3; j++) {
         const allEqual = currentBatch[j].every(
           (val: number, i: number, arr: number[]) => val === arr[0]
         );
-        if (allEqual) continue;
+        if (allEqual) {
+          equalCounter++;
+          continue;
+        }
         const allUnique =
           new Set(currentBatch[j]).size === currentBatch[j].length;
         if (allUnique) continue;
+        return false;
+      }
+      if (equalCounter === 3) {
         return false;
       }
     }
@@ -151,7 +195,7 @@ export class AppComponent {
   getRowScoreAndFactor(
     row: Row,
     rowChangeArray: Array<boolean>,
-    rowLength:number,
+    rowLength: number,
     score: number,
     factor: number
   ) {
@@ -178,7 +222,7 @@ export class AppComponent {
         if (rowChangeArray[j]) isChangedBatch = true;
       }
     }
-    return [score, factor]
+    return [score, factor];
   }
 
   getScore(
@@ -190,12 +234,24 @@ export class AppComponent {
     let score = 0;
     let factor = 1;
     for (let i = 0; i < gridHeight; i++) {
-      [score, factor] = this.getRowScoreAndFactor(grid[i], filledFields[i], gridLength, score, factor);
+      [score, factor] = this.getRowScoreAndFactor(
+        grid[i],
+        filledFields[i],
+        gridHeight,
+        score,
+        factor
+      );
     }
-    grid = this.rotate(grid);
-    filledFields = this.rotate (filledFields)
-    for (let i = 0; i < gridHeight; i++) {
-      [score, factor] = this.getRowScoreAndFactor(grid[i], filledFields[i], gridLength, score, factor);
+    grid = this.transpose(grid);
+    filledFields = this.transpose(filledFields);
+    for (let i = 0; i < gridLength; i++) {
+      [score, factor] = this.getRowScoreAndFactor(
+        grid[i],
+        filledFields[i],
+        gridLength,
+        score,
+        factor
+      );
     }
     if (this.countFilledFields(filledFields) === 4) {
       factor *= 2;
@@ -205,15 +261,23 @@ export class AppComponent {
   }
 
   countFilledFields(fields: BoolGrid): number {
-    let count = 0
-    for(var i=0;i < fields.length;i++){
-      for(var j=0;j<fields[i].length;j++){
+    let count = 0;
+    for (var i = 0; i < fields.length; i++) {
+      for (var j = 0; j < fields[i].length; j++) {
         if (fields[i][j] === true) {
           count++;
         }
       }
     }
     return count;
+  }
+
+  copyGrid(grid: Grid): Grid {
+    return JSON.parse(JSON.stringify(grid));
+  }
+
+  copyField(field: Field): Field {
+    return [field![0], field![1], field![2]];
   }
 
   getBestGrid(
@@ -235,14 +299,12 @@ export class AppComponent {
         for (let j = 0; j < gridLength; j++) {
           if (freeAdjacentFields[i][j]) {
             let tempGrid = grid.map((inner) => inner.slice());
-            tempGrid[i][j] = hand[c];
+            tempGrid[i][j] = this.copyField(hand[c]);
             //TODO: only check changed row and column
             let optimalGrid: Grid;
             let score: number;
             if (this.isValid(tempGrid)) {
-              let newFilledFields = filledFields.map((inner) =>
-                inner.slice()
-              );
+              let newFilledFields = filledFields.map((inner) => inner.slice());
               newFilledFields[i][j] = true;
 
               if (hand.length === 1) {
@@ -282,7 +344,7 @@ export class AppComponent {
               if (score > highestScore) {
                 highestScore = score;
                 bestGrid = optimalGrid;
-                bestFields = newFilledFields
+                bestFields = newFilledFields;
               }
             }
           }
